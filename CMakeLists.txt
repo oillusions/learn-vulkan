@@ -17,7 +17,6 @@ list(APPEND CMAKE_PREFIX_PATH "C:/libs/cmake/glm")
 add_executable(${CMAKE_PROJECT_NAME} ./code/main.cpp)
 
 find_package(Vulkan REQUIRED)
-
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(stb_image REQUIRED)
@@ -25,6 +24,7 @@ find_package(stb_image REQUIRED)
 set(GLM_BUILD_LIBRARY OFF)
 
 add_subdirectory(code/opengl/utils)
+add_subdirectory(code/vulkan/context)
 add_subdirectory(code/utils/container)
 add_subdirectory(code/utils/event_bus)
 add_subdirectory(code/utils/logger)
@@ -34,15 +34,20 @@ add_subdirectory(code/test)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
 	Vulkan::Vulkan
+	glfw
+
+	vk::Context
+
 	glm::glm
-    glfw
 	stb::stb
+
 	gl::Utils
 	utils::Container
 	utils::EventBus
 	utils::Logger
 	utils::ModelLoader
 	utils::Resource
+
 	Test
 )
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")

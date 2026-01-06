@@ -6,8 +6,6 @@
 #include <queue>
 #include <string>
 
-#include "GlobalLogger.hpp"
-
 
 /**
  * @brief 日志器本体

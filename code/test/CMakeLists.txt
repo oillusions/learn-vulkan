@@ -10,16 +10,23 @@ target_include_directories(Test PUBLIC
 
 target_sources(Test PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/Camera.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/TestRender.cpp
 )
 
 target_link_libraries(Test PRIVATE
-	glm::glm
+	Vulkan::Vulkan
 	glfw
+
 	stb::stb
+	glm::glm
+
+	vk::Context
+
 	gl::Utils
+
 	utils::Container
 	utils::EventBus
+	utils::Logger
 	utils::ModelLoader
 	utils::Resource
-	utils::Logger
 )

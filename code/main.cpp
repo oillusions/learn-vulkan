@@ -4,15 +4,14 @@
 #include <windows.h>
 #include <thread>
 
-#include <vulkan/vulkan.hpp>
-#include <GLFW/glfw3.h>
-
 #include <GlobalLogger.hpp>
 #include <ResourceTypes.hpp>
-
+#include <EventTypes.hpp>
 
 #include <Camera.h>
-#include <EventTypes.hpp>
+
+#include <VkContext.h>
+#include <TestRender.h>
 
 
 using namespace std;
@@ -21,19 +20,18 @@ namespace fs = filesystem;
 double deltaTime{};
 double lastTime{};
 
-int width = 800, height = 600;
+constexpr int width = 800, height = 600;
 string name = "learn";
 
 GLFWwindow* window{nullptr};
 
-// template<typename T, typename... Args>
-// T cast(Args&&... args) {
-//     return {forward<Args>(args)...};
-// }
-
 void render() {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
+
+    VkContext context(window);
+
+    TestRender test(context);
 
 
     // unique_ptr<Camera> camera = make_unique<Camera>();
@@ -49,15 +47,12 @@ void render() {
 }
 
 int main() {
-
     globalLogger::_minLevel = DefaultLevel::Debug;
     glog.log(DefaultLevel::Info, "程序已启动");
 
-
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
     if (window == nullptr) {
@@ -72,14 +67,15 @@ int main() {
     glfwSetMouseButtonCallback(window, event::func::mouse_button_callback);
     glfwSetFramebufferSizeCallback(window, event::func::frameBuffer_size_callback);
 
-    thread openglThread(render);
+    thread renderThread(render);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
     }
 
-    openglThread.join();
+    renderThread.join();
     glfwTerminate();
+    glfwDestroyWindow(window);
 
     glog.log<DefaultLevel::Info>("程序已结束");
     return 0;

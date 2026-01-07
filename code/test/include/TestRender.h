@@ -13,15 +13,15 @@ class TestRender {
     private:
         VkContext& context;
         std::vector<VkShaderModule> shaderModules{};
-        VkRenderPass renderPass;
-        VkPipelineLayout pipelineLayout;
-        VkPipeline graphicsPipeline;
+        VkRenderPass renderPass{};
+        VkPipelineLayout pipelineLayout{};
+        VkPipeline graphicsPipeline{};
         std::vector<VkFramebuffer> frameBuffers{};
-        VkCommandPool commandPool;
-        VkCommandBuffer commandBuffer;
-        VkSemaphore imageAvailableSemaphore;
-        VkSemaphore renderFinishedSemaphore;
-        VkFence inFlightFence;
+        VkCommandPool commandPool{};
+        VkCommandBuffer commandBuffer{};
+        VkSemaphore imageAvailableSemaphore{};
+        VkSemaphore renderFinishedSemaphore{};
+        VkFence inFlightFence{};
 
         void recordCommand(uint32_t imageIndex) const;
 };

@@ -14,6 +14,7 @@
 #include <GLFW/glfw3native.h>
 
 #include <GlobalLogger.hpp>
+#include <EvkContext.h>
 
 
 struct QueueFamilyIndices {
@@ -43,7 +44,7 @@ class VkContext {
             void* pUserData);
     public:
         GLFWwindow* _window{nullptr};
-        VkInstance _instance{};
+        raii::VkInstance _instance{};
         VkSurfaceKHR _surface{};
         VkDebugUtilsMessengerEXT _debugMessenger{};
         VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;

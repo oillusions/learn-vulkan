@@ -75,7 +75,6 @@ VkContext::~VkContext() {
     vkDestroySwapchainKHR(_device, _swapChain, nullptr);
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
-    vkDestroyInstance(_instance, nullptr);
     glog.log<DefaultLevel::Debug>("VulkanContext 上下文已析构");
 }
 
@@ -126,15 +125,6 @@ bool VkContext::isDeviceSuitable(const VkPhysicalDevice &device) const {
     vkGetPhysicalDeviceProperties(device, &deviceProperties);
     vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
     glog.log<DefaultLevel::Debug>("设备名: " + string(deviceProperties.deviceName));
-    string logContent = "设备UUID: ";
-    for (size_t i = 0; i < 16; i++) {
-        if (i < 15) {
-            logContent += to_string(deviceProperties.pipelineCacheUUID[i]) + '-';
-        } else {
-            logContent += to_string(deviceProperties.pipelineCacheUUID[i]);
-        }
-    }
-    glog.log<DefaultLevel::Debug>(logContent);
 
     bool extensionSupported = checkDeviceExtensionSupport(device);
     bool swapChainAdequate{};

@@ -5,6 +5,7 @@ target_include_directories(Context PUBLIC
 
 target_sources(Context PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/VkContext.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/EvkContext.cpp
 )
 
 target_link_libraries(Context PRIVATE

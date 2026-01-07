@@ -3,13 +3,13 @@
 #ifdef NDEBUG
     constexpr bool enableValidationPayers = false;
 #else
-    constexpr bool enableValidationPayers = true;
+    constexpr bool enableValidationLayers = true;
 #endif
 
 using namespace std;
 namespace fs = filesystem;
 
-const vector validationPayers {
+const vector validationLayers {
     "VK_LAYER_KHRONOS_validation"
 };
 
@@ -36,13 +36,14 @@ VkContext::VkContext(GLFWwindow* window): _window(window) {
     createInfo.enabledExtensionCount = reqExtension.size();
     createInfo.ppEnabledExtensionNames = reqExtension.data();
 
-    if (enableValidationPayers) {
+
+    if (enableValidationLayers) {
         if (!checkValidationLayerSupport()) {
             glog.log<DefaultLevel::Error>("VulkanContext 请求验证层但不可用");
             terminate();
         }
-        createInfo.enabledLayerCount = validationPayers.size();
-        createInfo.ppEnabledLayerNames = validationPayers.data();
+        createInfo.enabledLayerCount = validationLayers.size();
+        createInfo.ppEnabledLayerNames = validationLayers.data();
     } else {
         createInfo.enabledLayerCount = 0;
     }
@@ -61,8 +62,8 @@ VkContext::VkContext(GLFWwindow* window): _window(window) {
 }
 
 VkContext::~VkContext() {
-    if (enableValidationPayers) {
-        auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(_instance, "vkDestroyUtilsMessengerEXT"));
+    if (enableValidationLayers) {
+        auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT"));
         if (func != nullptr) {
             func(_instance, _debugMessenger, nullptr);
         }
@@ -72,14 +73,14 @@ VkContext::~VkContext() {
     }
 
     vkDestroySwapchainKHR(_device, _swapChain, nullptr);
-    vkDestroyDevice(_device, nullptr);
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
+    vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
     glog.log<DefaultLevel::Debug>("VulkanContext 上下文已析构");
 }
 
 VkBool32 VkContext::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
-    switch (messageType) {
+    switch (messageSeverity) {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
             glog.log<DefaultLevel::Debug>("验证层: " + string(pCallbackData->pMessage));
             break;
@@ -106,7 +107,7 @@ std::vector<const char *> VkContext::getRequiredExtensions() {
     const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
     vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-    if (enableValidationPayers) {
+    if (enableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
@@ -125,6 +126,15 @@ bool VkContext::isDeviceSuitable(const VkPhysicalDevice &device) const {
     vkGetPhysicalDeviceProperties(device, &deviceProperties);
     vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
     glog.log<DefaultLevel::Debug>("设备名: " + string(deviceProperties.deviceName));
+    string logContent = "设备UUID: ";
+    for (size_t i = 0; i < 16; i++) {
+        if (i < 15) {
+            logContent += to_string(deviceProperties.pipelineCacheUUID[i]) + '-';
+        } else {
+            logContent += to_string(deviceProperties.pipelineCacheUUID[i]);
+        }
+    }
+    glog.log<DefaultLevel::Debug>(logContent);
 
     bool extensionSupported = checkDeviceExtensionSupport(device);
     bool swapChainAdequate{};
@@ -166,7 +176,7 @@ bool VkContext::checkValidationLayerSupport() {
     vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layerName : validationPayers) {
+    for (const char* layerName : validationLayers) {
         bool layerFound = false;
 
         for (const auto& layerProperties : availableLayers) {
@@ -183,7 +193,7 @@ bool VkContext::checkValidationLayerSupport() {
 }
 
 void VkContext::setupDebugMessenger() {
-    if constexpr (!enableValidationPayers) return;
+    if constexpr (!enableValidationLayers) return;
     VkDebugUtilsMessengerCreateInfoEXT messengerInfo{};
     messengerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     messengerInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;

@@ -2,16 +2,26 @@
 #include <VkContext.h>
 
 #include <ResourceTypes.hpp>
-#include <ResourceUtils.hpp>
 
 class TestRender {
     public:
         TestRender(VkContext& context);
+        ~TestRender();
+
+        void render() const;
 
     private:
         VkContext& context;
         std::vector<VkShaderModule> shaderModules{};
+        VkRenderPass renderPass;
+        VkPipelineLayout pipelineLayout;
+        VkPipeline graphicsPipeline;
+        std::vector<VkFramebuffer> frameBuffers{};
+        VkCommandPool commandPool;
+        VkCommandBuffer commandBuffer;
+        VkSemaphore imageAvailableSemaphore;
+        VkSemaphore renderFinishedSemaphore;
+        VkFence inFlightFence;
 
-        ShaderResource& vert;
-        ShaderResource& frag;
+        void recordCommand(uint32_t imageIndex) const;
 };

@@ -9,7 +9,7 @@
 
 class ShaderResource: public RAIIWrapper<std::vector<char>>, IResource {
     public:
-        ShaderResource(std::filesystem::path path) {
+        ShaderResource(const std::filesystem::path& path) {
             if (!std::filesystem::exists(path)) {
                 glog.log<DefaultLevel::Warn>("ShaderResource 加载失败: 文件不存在[" + path.string() + "]");
                 return;
@@ -24,6 +24,7 @@ class ShaderResource: public RAIIWrapper<std::vector<char>>, IResource {
                 glog.log<DefaultLevel::Warn>("ShaderResource 加载失败: 文件为空[" + path.string() + "]");
             }
             _value.resize(fileSize);
+            file.seekg(0);
             file.read(_value.data(), fileSize);
             file.close();
 

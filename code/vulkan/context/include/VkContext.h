@@ -2,7 +2,6 @@
 #include <iostream>
 #include <fstream>
 #include <windows.h>
-#include <thread>
 #include <optional>
 #include <set>
 
@@ -21,7 +20,7 @@ struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
 
-    bool isComplete() const {
+    [[nodiscard]] bool isComplete() const {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
@@ -69,14 +68,14 @@ class VkContext {
         void createSwapChain();
         void createImageViews();
 
-        bool isDeviceSuitable(const VkPhysicalDevice& device) const;
+        [[nodiscard]] bool isDeviceSuitable(const VkPhysicalDevice& device) const;
         static bool checkDeviceExtensionSupport(const VkPhysicalDevice& device);
         static bool checkValidationLayerSupport();
 
-        QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice& device) const;
-        SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice& device) const;
+        [[nodiscard]] QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice& device) const;
+        [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice& device) const;
 
         static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);
-        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;
+        [[nodiscard]] VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;
 };

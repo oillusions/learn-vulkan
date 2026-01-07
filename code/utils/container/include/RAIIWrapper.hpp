@@ -40,6 +40,14 @@ class RAIIWrapper {
         CarriedType* operator -> () {
             return &_value;
         }
+
+        const CarriedType* operator & () const {
+            return &_value;
+        }
+
+        const CarriedType* operator -> () const {
+            return &_value;
+        }
     protected:
         CarriedType _value;
 };

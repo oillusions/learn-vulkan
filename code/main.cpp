@@ -26,7 +26,6 @@ string name = "learn";
 GLFWwindow* window{nullptr};
 
 void render() {
-    glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
     VkContext context(window);
@@ -34,7 +33,7 @@ void render() {
     TestRender test(context);
 
 
-    // unique_ptr<Camera> camera = make_unique<Camera>();
+    // unique_ptr<Camera> camera = make_unique<Camera>();wa
     // camera->init(window, gEbus, width, height);
 
     double currentTime{};
@@ -42,8 +41,9 @@ void render() {
         currentTime = glfwGetTime();
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
-        glfwSwapBuffers(window);
+        test.render();
     }
+    vkDeviceWaitIdle(context._device);
 }
 
 int main() {

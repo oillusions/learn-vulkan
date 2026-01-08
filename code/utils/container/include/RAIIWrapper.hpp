@@ -5,19 +5,25 @@
  * @brief RAII包装器
  * @tparam CarriedType 包装类型
  * @tparam Copy 启用拷贝
+ * @tparam Move 启用移动
  */
-template<typename CarriedType, bool Copy = false>
-class RAIIWrapper;
-
-template<typename CarriedType, bool Copy>
+template<typename CarriedType, bool Copy = false, bool Move = true>
 class RAIIWrapper {
     public:
         template<typename T = CarriedType, typename = std::enable_if_t<std::is_default_constructible_v<T>>>
         RAIIWrapper(): _value() {};
         RAIIWrapper(CarriedType value): _value(std::move(value)) {};
         virtual ~RAIIWrapper() = default;
-        RAIIWrapper(RAIIWrapper&&) = default;
-        RAIIWrapper& operator = (RAIIWrapper&&) = default;
+
+        template<bool Enable = Move, typename = std::enable_if_t<Enable>>
+        RAIIWrapper(RAIIWrapper&& other) noexcept: _value(std::move(other._value)) {};
+        template<bool Enable = Move, typename = std::enable_if_t<Enable>>
+        RAIIWrapper& operator = (RAIIWrapper&& other) noexcept {
+            if (this != other) {
+                _value = std::move(other._value);
+            }
+            return *this;
+        };
 
         template<bool Enable = Copy, typename = std::enable_if_t<Enable>>
         RAIIWrapper(const RAIIWrapper& other): _value(other) {};

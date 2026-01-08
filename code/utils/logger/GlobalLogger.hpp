@@ -58,10 +58,7 @@ namespace globalLogger {
             case DefaultLevel::Warn:  levelStr = "WARN";  break;
             case DefaultLevel::Error: levelStr = "ERROR"; break;
         }
-
-        return record.additionInfo.timestamp +
-               " [" + levelStr + "] " +
-               record.message;
+        return std::format("{} [{}] {}", record.additionInfo.timestamp, levelStr, record.message);
     }
 
     /**

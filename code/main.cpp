@@ -12,6 +12,7 @@
 
 #include <VkContext.h>
 #include <TestRender.h>
+#include <GLFW/glfw3.h>
 
 
 using namespace std;
@@ -24,16 +25,26 @@ constexpr int width = 800, height = 600;
 string name = "learn";
 
 GLFWwindow* window{nullptr};
-
 void render() {
     glfwSwapInterval(1);
 
-    VkContext context(window);
+    // VkContext context(window);
+    // TestRender test(context);
 
-    TestRender test(context);
+    uint32_t glfwExtensionCount = 0;
+    const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
+    vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    // unique_ptr<Camera> camera = make_unique<Camera>();wa
+    EvkContext::Builder builder = EvkContext::builder()
+        .appName("learn");
+    for (const auto& extensionName : extensions) {
+        builder.appendExtension(extensionName);
+    }
+    EvkContext context = builder.build();
+    context.createSurface("main", createWin32Surface, window);
+
+    // unique_ptr<Camera> camera = make_unique<Camera>();
     // camera->init(window, gEbus, width, height);
 
     double currentTime{};
@@ -41,9 +52,9 @@ void render() {
         currentTime = glfwGetTime();
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
-        test.render();
+        // test.render();
     }
-    vkDeviceWaitIdle(context._device);
+    // vkDeviceWaitIdle(context._device);
 }
 
 int main() {

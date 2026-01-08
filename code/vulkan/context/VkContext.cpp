@@ -29,7 +29,7 @@ VkContext::VkContext(GLFWwindow* window): _window(window) {
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo = & appInfo;
+    createInfo.pApplicationInfo = &appInfo;
 
     vector reqExtension = getRequiredExtensions();
 
@@ -49,7 +49,7 @@ VkContext::VkContext(GLFWwindow* window): _window(window) {
     }
 
     if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
-        glog.log<DefaultLevel::Error>("Vulkan实例创建失败");
+        glog.log<DefaultLevel::Error>("Vulkan 实例创建失败");
         terminate();
     }
 

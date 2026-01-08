@@ -15,10 +15,23 @@ namespace raii {
             glog.log<DefaultLevel::Debug>("Vulkan 实例已析构");
         }
     };
+
+    class VkDebugUtilsMessengerEXT: public VkRAIIWrapper<::VkDebugUtilsMessengerEXT> {
+        public:
+            VkDebugUtilsMessengerEXT(VkInstance& instance): _instance(instance) {};
+            ~VkDebugUtilsMessengerEXT() override {
+                const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT"));
+                if (func != nullptr) {
+                    func(_instance, _value, nullptr);
+                }
+            }
+        private:
+            VkInstance& _instance;
+    };
+
     class VkSurfaceKHR: public VkRAIIWrapper<::VkSurfaceKHR> {
     public:
-        VkSurfaceKHR(VkInstance &instance): _instance(instance) {
-        }
+        VkSurfaceKHR(VkInstance& instance): _instance(instance) {};
         ~VkSurfaceKHR() override {
             vkDestroySurfaceKHR(_instance, _value, nullptr);
             glog.log<DefaultLevel::Debug>("Vulkan Surface已析构");

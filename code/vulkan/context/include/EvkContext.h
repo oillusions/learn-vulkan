@@ -9,7 +9,8 @@
 #include <VulkanUtils.hpp>
 
 class EvkContext;
-class EvkDeviceContext;
+class EvkPhysicalDeviceContext;
+class EvkLogicDeviceContext;
 
 class EvkContext {
     public:
@@ -56,8 +57,14 @@ class EvkContext {
         static Builder builder() {return Builder{};}
         static bool checkLayerSupport(const std::vector<const char*>& layerNames);
         static bool checkExtensionSupport(const std::vector<const char *> &extensionNames);
+        static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+            VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+            VkDebugUtilsMessageTypeFlagsEXT messageType,
+            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+            void* pUserData);
     private:
         raii::VkInstance _instance;
+        raii::VkDebugUtilsMessengerEXT _debugMessenger{_instance};
         std::map<std::string, raii::VkSurfaceKHR> _surfaceMap{};
 
 
@@ -67,6 +74,7 @@ class EvkContext {
         const bool EnableDebug = true;
 #endif
 
-
         EvkContext(const VkApplicationInfo &appInfo, std::vector<const char*> extensionNames, std::vector<const char*> layerNames);
+
+        void setupDebugMessenger();
 };

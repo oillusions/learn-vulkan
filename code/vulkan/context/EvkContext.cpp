@@ -68,6 +68,30 @@ EvkContext::EvkContext(const VkApplicationInfo &appInfo, std::vector<const char*
         glog.log<DefaultLevel::Error>("Vulkan 实例创建失败");
         terminate();
     }
+    if (EnableDebug) {
+        setupDebugMessenger();
+    }
+}
+
+void EvkContext::setupDebugMessenger() {
+    VkDebugUtilsMessengerCreateInfoEXT messengerInfo{};
+    messengerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    messengerInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    messengerInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    messengerInfo.pfnUserCallback = debugCallback;
+    messengerInfo.pUserData = nullptr;
+
+    auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(_instance, "vkCreateDebugUtilsMessengerEXT"));
+    if (func != nullptr) {
+        if (func(_instance, &messengerInfo, nullptr, &_debugMessenger) != VK_SUCCESS) {
+            glog.log<DefaultLevel::Debug>("VulkanContext 创建调试工具信使失败");
+            terminate();
+        };
+        return;
+    } else {
+        glog.log<DefaultLevel::Error>("VulkanContext 获取扩展函数[vkCreateDebugUtilsMessengerEXT]失败");
+        terminate();
+    }
 }
 
 
@@ -115,3 +139,25 @@ bool EvkContext::checkExtensionSupport(const std::vector<const char *> &extensio
     return true;
 }
 
+VkBool32 EvkContext::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
+    switch (messageSeverity) {
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
+            glog.log<DefaultLevel::Debug>("验证层: " + string(pCallbackData->pMessage));
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: {
+            glog.log<DefaultLevel::Info>("验证层: " + string(pCallbackData->pMessage));
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: {
+            glog.log<DefaultLevel::Warn>("验证层: " + string(pCallbackData->pMessage));
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: {
+            glog.log<DefaultLevel::Error>("验证层: " + string(pCallbackData->pMessage));
+            break;
+        }
+        default:;
+    }
+    return VK_FALSE;
+}

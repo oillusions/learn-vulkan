@@ -4,15 +4,13 @@
 #include <windows.h>
 #include <thread>
 
+#include <GLFW/glfw3.h>
+
 #include <GlobalLogger.hpp>
 #include <ResourceTypes.hpp>
 #include <EventTypes.hpp>
-
-#include <Camera.h>
-
 #include <VkContext.h>
 #include <TestRender.h>
-#include <GLFW/glfw3.h>
 
 
 using namespace std;
@@ -42,10 +40,9 @@ void render() {
         builder.appendExtension(extensionName);
     }
     EvkContext context = builder.build();
-    context.createSurface("main", createWin32Surface, window);
+    auto& physicalDevice = context.defaultPhysicalDevice();
+    physicalDevice.createSurface("main", createWin32Surface, window);
 
-    // unique_ptr<Camera> camera = make_unique<Camera>();
-    // camera->init(window, gEbus, width, height);
 
     double currentTime{};
     while (!glfwWindowShouldClose(window)) {

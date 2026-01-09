@@ -9,7 +9,6 @@ target_include_directories(Test PUBLIC
 )
 
 target_sources(Test PRIVATE
-	${CMAKE_CURRENT_SOURCE_DIR}/Camera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/TestRender.cpp
 )
 

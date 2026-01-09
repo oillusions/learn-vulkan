@@ -120,12 +120,6 @@ std::vector<const char *> VkContext::getRequiredExtensions() {
 }
 
 bool VkContext::isDeviceSuitable(const VkPhysicalDevice &device) const {
-    VkPhysicalDeviceProperties deviceProperties;
-    VkPhysicalDeviceFeatures deviceFeatures;
-    vkGetPhysicalDeviceProperties(device, &deviceProperties);
-    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-    glog.log<DefaultLevel::Debug>("设备名: " + string(deviceProperties.deviceName));
-
     bool extensionSupported = checkDeviceExtensionSupport(device);
     bool swapChainAdequate{};
     if (extensionSupported) {

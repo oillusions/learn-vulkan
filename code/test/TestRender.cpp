@@ -6,7 +6,14 @@ inline static filesystem::path vertShader = "./bin_shader/default.vert.spv";
 inline static filesystem::path fragShader = "./bin_shader/default.frag.spv";
 
 TestRender::TestRender(VkContext &context):
-    context(context) {
+    context(context),
+    renderPass(context._device),
+    pipelineLayout(context._device),
+    graphicsPipeline(context._device),
+    commandPool(context._device),
+    imageAvailableSemaphore(context._device),
+    renderFinishedSemaphore(context._device),
+    inFlightFence(context._device) {
 
     arm.load<ShaderResource>("shader.vert.default", vertShader);
     arm.load<ShaderResource>("shader.frag.default", fragShader);
@@ -16,18 +23,17 @@ TestRender::TestRender(VkContext &context):
         arm.find<ShaderResource>("shader.frag.default")
     };
 
-    shaderModules.resize(2);
-    size_t count{};
-    for (auto& shaderModule : shaderModules) {
+    shaderModules.reserve(2);
+    for (size_t i = 0; i < 2; i++) {
+        shaderModules.emplace_back(context._device);
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = shaderBins[count].get().size();
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderBins[count].get().data());
-        if (vkCreateShaderModule(context._device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+        createInfo.codeSize = shaderBins[i].get().size();
+        createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderBins[i].get().data());
+        if (vkCreateShaderModule(context._device, &createInfo, nullptr, &shaderModules[i]) != VK_SUCCESS) {
             glog.log<DefaultLevel::Error>("TestRender 着色器模块创建失败");
             terminate();
         }
-        count++;
     }
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
@@ -215,9 +221,10 @@ TestRender::TestRender(VkContext &context):
         glog.log<DefaultLevel::Error>("TestRender 图形管线创建失败");
     }
 
-    frameBuffers.resize(context._swapChainImageViews.size());
+    frameBuffers.reserve(context._swapChainImageViews.size());
     size_t i{};
     for (auto& imageView : context._swapChainImageViews) {
+        frameBuffers.emplace_back(context._device);
         VkImageView attachments[] {
             imageView
         };
@@ -275,26 +282,6 @@ TestRender::TestRender(VkContext &context):
     if (vkCreateFence(context._device, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
         glog.log<DefaultLevel::Error>("TestRender 栅栏创建失败");
         terminate();
-    }
-}
-
-TestRender::~TestRender() {
-    vkDestroySemaphore(context._device, imageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(context._device, renderFinishedSemaphore, nullptr);
-    vkDestroyFence(context._device, inFlightFence, nullptr);
-
-    vkDestroyCommandPool(context._device, commandPool, nullptr);
-
-    for (auto& framebuffer : frameBuffers) {
-        vkDestroyFramebuffer(context._device, framebuffer, nullptr);
-    }
-
-    vkDestroyPipeline(context._device, graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(context._device, pipelineLayout, nullptr);
-    vkDestroyRenderPass(context._device, renderPass, nullptr);
-
-    for (auto& shaderModule : shaderModules) {
-        vkDestroyShaderModule(context._device, shaderModule, nullptr);
     }
 }
 

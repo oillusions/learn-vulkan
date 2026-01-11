@@ -61,23 +61,6 @@ VkContext::VkContext(GLFWwindow* window): _window(window) {
     createImageViews();
 }
 
-VkContext::~VkContext() {
-    if (enableValidationLayers) {
-        auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT"));
-        if (func != nullptr) {
-            func(_instance, _debugMessenger, nullptr);
-        }
-    }
-    for (auto& imageView : _swapChainImageViews) {
-        vkDestroyImageView(_device, imageView, nullptr);
-    }
-
-    vkDestroySwapchainKHR(_device, _swapChain, nullptr);
-    vkDestroySurfaceKHR(_instance, _surface, nullptr);
-    vkDestroyDevice(_device, nullptr);
-    glog.log<DefaultLevel::Debug>("VulkanContext 上下文已析构");
-}
-
 VkBool32 VkContext::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
     switch (messageSeverity) {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
@@ -320,9 +303,10 @@ void VkContext::createSwapChain() {
 }
 
 void VkContext::createImageViews() {
-    _swapChainImageViews.resize(_swapChainImages.size());
+    _swapChainImageViews.reserve(_swapChainImages.size());
     size_t i{};
     for (auto& image : _swapChainImages) {
+        _swapChainImageViews.emplace_back(_device);
         VkImageViewCreateInfo imageViewInfo{};
         imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         imageViewInfo.image = image;

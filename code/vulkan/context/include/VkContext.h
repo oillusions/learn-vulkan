@@ -14,7 +14,7 @@
 #include <GLFW/glfw3native.h>
 
 #include <GlobalLogger.hpp>
-#include <EvkContext.h>
+#include <VulkanTypes.hpp>
 
 
 struct QueueFamilyIndices {
@@ -35,7 +35,6 @@ struct SwapChainSupportDetails {
 class VkContext {
     public:
         VkContext(GLFWwindow* window);
-        ~VkContext();
 
         static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
             VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -45,17 +44,17 @@ class VkContext {
     public:
         GLFWwindow* _window{nullptr};
         raii::VkInstance _instance{};
-        VkSurfaceKHR _surface{};
-        VkDebugUtilsMessengerEXT _debugMessenger{};
+        raii::VkSurfaceKHR _surface{_instance};
+        raii::VkDebugUtilsMessengerEXT _debugMessenger{_instance};
         VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
-        VkDevice _device{};
+        raii::VkDevice _device{};
         VkQueue _graphicsQueue{};
         VkQueue _presentQueue{};
-        VkSwapchainKHR _swapChain{};
+        raii::VkSwapChainKHR _swapChain{_device};
         VkFormat _swapChainImageFormat{};
         VkExtent2D _swapChainImageExtent{};
         std::vector<VkImage> _swapChainImages{};
-        std::vector<VkImageView> _swapChainImageViews{};
+        std::vector<raii::VkImageView> _swapChainImageViews{};
 
         inline static std::string name{"learn"};
 

@@ -12,6 +12,8 @@
 #include <VkContext.h>
 #include <TestRender.h>
 
+#include <EvkContext.h>
+
 
 using namespace std;
 namespace fs = filesystem;
@@ -26,22 +28,13 @@ GLFWwindow* window{nullptr};
 void render() {
     glfwSwapInterval(1);
 
-    // VkContext context(window);
-    // TestRender test(context);
+    VkContext context(window);
+    TestRender test(context);
 
     uint32_t glfwExtensionCount = 0;
     const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
     vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-    EvkContext::Builder builder = EvkContext::builder()
-        .appName("learn");
-    for (const auto& extensionName : extensions) {
-        builder.appendExtension(extensionName);
-    }
-    EvkContext context = builder.build();
-    auto& physicalDevice = context.defaultPhysicalDevice();
-    physicalDevice.createSurface("main", createWin32Surface, window);
 
 
     double currentTime{};
@@ -49,9 +42,9 @@ void render() {
         currentTime = glfwGetTime();
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
-        // test.render();
+        test.render();
     }
-    // vkDeviceWaitIdle(context._device);
+    vkDeviceWaitIdle(context._device);
 }
 
 int main() {

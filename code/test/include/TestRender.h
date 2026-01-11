@@ -6,22 +6,21 @@
 class TestRender {
     public:
         TestRender(VkContext& context);
-        ~TestRender();
 
         void render() const;
 
     private:
         VkContext& context;
-        std::vector<VkShaderModule> shaderModules{};
-        VkRenderPass renderPass{};
-        VkPipelineLayout pipelineLayout{};
-        VkPipeline graphicsPipeline{};
-        std::vector<VkFramebuffer> frameBuffers{};
-        VkCommandPool commandPool{};
+        std::vector<raii::VkShaderModule> shaderModules{};
+        raii::VkRenderPass renderPass;
+        raii::VkPipelineLayout pipelineLayout;
+        raii::VkPipeline graphicsPipeline;
+        std::vector<raii::VkFramebuffer> frameBuffers{};
+        raii::VkCommandPool commandPool;
         VkCommandBuffer commandBuffer{};
-        VkSemaphore imageAvailableSemaphore{};
-        VkSemaphore renderFinishedSemaphore{};
-        VkFence inFlightFence{};
+        raii::VkSemaphore imageAvailableSemaphore;
+        raii::VkSemaphore renderFinishedSemaphore;
+        raii::VkFence inFlightFence;
 
         void recordCommand(uint32_t imageIndex) const;
 };

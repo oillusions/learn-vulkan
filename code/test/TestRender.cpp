@@ -362,7 +362,7 @@ void TestRender::recordCommand(const uint32_t imageIndex) const {
     renderPassBeginInfo.renderArea.extent = context._swapChainImageExtent;
 
 
-    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    VkClearValue clearColor = {{{1.0f, 0.9804f, 0.9608f, 1.0f}}};
     renderPassBeginInfo.clearValueCount = 1;
     renderPassBeginInfo.pClearValues = &clearColor;
 

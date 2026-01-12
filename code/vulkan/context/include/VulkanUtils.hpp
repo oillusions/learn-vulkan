@@ -1,13 +1,16 @@
 #pragma once
 
-#define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_win32.h>
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
+#ifdef __WIN32
+#include <vulkan/vulkan_win32.h>
 #include <GLFW/glfw3native.h>
+#endif
 
+
+inline VkResult createGlfwSurface(const VkInstance& instance, VkSurfaceKHR& surface, GLFWwindow* window) {
+    return glfwCreateWindowSurface(instance, window, nullptr, &surface);
+}
 
 inline VkResult createWin32Surface(const VkInstance &instance, VkSurfaceKHR &surface, GLFWwindow *window) {
     VkWin32SurfaceCreateInfoKHR win32KHRInfo{};

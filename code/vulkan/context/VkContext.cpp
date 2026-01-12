@@ -1,5 +1,7 @@
 #include "VkContext.h"
 
+#include "VulkanUtils.hpp"
+
 #ifdef NDEBUG
     constexpr bool enableValidationPayers = false;
 #else
@@ -54,7 +56,7 @@ VkContext::VkContext(GLFWwindow* window): _window(window) {
     }
 
     setupDebugMessenger();
-    createSurface();
+    createWin32Surface(_instance, _surface, window);
     pickPhysicalDevice();
     createLogicalDevice();
     createSwapChain();

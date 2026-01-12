@@ -16,6 +16,7 @@ list(APPEND CMAKE_PREFIX_PATH "C:/libs/cmake/glm")
 
 add_executable(${CMAKE_PROJECT_NAME} ./code/main.cpp)
 
+
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)

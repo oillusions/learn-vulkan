@@ -1,18 +1,27 @@
+#pragma once
 #define STB_IMAGE_IMPLEMENTATION
+#define GLFW_INCLUDE_VULKAN
+
+#ifdef __WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif
+
 #include <iostream>
 #include <fstream>
-#include <windows.h>
 #include <thread>
 
+#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
+
 #include <GLFW/glfw3.h>
+
 
 #include <GlobalLogger.hpp>
 #include <ResourceTypes.hpp>
 #include <EventTypes.hpp>
-#include <VkContext.h>
-#include <TestRender.h>
-
 #include <EvkContext.h>
+#include "VulkanUtils.hpp"
 
 
 using namespace std;
@@ -28,13 +37,9 @@ GLFWwindow* window{nullptr};
 void render() {
     glfwSwapInterval(1);
 
-    VkContext context(window);
-    TestRender test(context);
+    VulkanContext context{};
 
-    uint32_t glfwExtensionCount = 0;
-    const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    auto surface = context.createSurface(createGlfwSurface, window);
 
 
     double currentTime{};
@@ -42,9 +47,7 @@ void render() {
         currentTime = glfwGetTime();
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
-        test.render();
     }
-    vkDeviceWaitIdle(context._device);
 }
 
 int main() {

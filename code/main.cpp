@@ -1,4 +1,3 @@
-#pragma once
 #define STB_IMAGE_IMPLEMENTATION
 #define GLFW_INCLUDE_VULKAN
 
@@ -12,8 +11,6 @@
 #include <thread>
 
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_raii.hpp>
-
 #include <GLFW/glfw3.h>
 
 
@@ -21,6 +18,8 @@
 #include <ResourceTypes.hpp>
 #include <EventTypes.hpp>
 #include <EvkContext.h>
+#include <set>
+
 #include "VulkanUtils.hpp"
 
 
@@ -40,7 +39,7 @@ void render() {
     VulkanContext context{};
 
     auto surface = context.createSurface(createGlfwSurface, window);
-
+    auto device = context.physicalDevice->createLogicDevice(createBasicGraphicsDevice, surface);
 
     double currentTime{};
     while (!glfwWindowShouldClose(window)) {

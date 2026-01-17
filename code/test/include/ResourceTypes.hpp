@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <stb_image.h>
 
 #include <GlobalLogger.hpp>
 #include <RAIIWrapper.hpp>
@@ -41,4 +42,24 @@ class ShaderResource: public RAIIWrapper<std::vector<char>>, IResource {
         }
     private:
         bool isLoad{false};
+};
+
+class ImageResource: public RAIIWrapper<GLFWimage>, IResource {
+    public:
+        GLFWimage& image = _value;
+        ImageResource(const std::filesystem::path& path) {
+            if (!std::filesystem::exists(path)) {
+                glog.log<DefaultLevel::Warn>("ImageResource 加载失败: 文件不存在[" + path.string() + "]");
+                return;
+            }
+
+            imageData = stbi_load(path.string().c_str(), &image.width, &image.height, nullptr, 4);
+            image.pixels = imageData;
+        }
+
+        ~ImageResource() override {
+            stbi_image_free(imageData);
+        }
+    private:
+        uint8_t* imageData{nullptr};
 };

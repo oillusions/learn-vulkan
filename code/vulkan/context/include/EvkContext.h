@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "VulkanTypes.hpp"
 
 template<typename T, typename Type = std::decay_t<T>>
@@ -7,17 +9,22 @@ Type& reference_cast(T& _value) {
     return _value;
 }
 
+class PhysicalDeviceContext;
+
 class QueueFamilyInfo {
     public:
+        const uint32_t queueFamilyIndex;
         const uint32_t queueCount;
         const VkQueueFlags queueFlags;
 
-        QueueFamilyInfo(uint32_t queueCount, VkQueueFlags queueFlags):
-            queueCount(queueCount),
-            queueFlags(queueFlags),
+        QueueFamilyInfo(uint32_t queue_family_index, uint32_t queue_count, VkQueueFlags queue_flags):
+            queueFamilyIndex(queue_family_index),
+            queueCount(queue_count),
+            queueFlags(queue_flags),
             _queueOccupancyCount(0) {};
 
-        QueueFamilyInfo(const VkQueueFamilyProperties& properties):
+        QueueFamilyInfo(uint32_t queue_family_index, const VkQueueFamilyProperties& properties):
+            queueFamilyIndex(queue_family_index),
             queueCount(properties.queueCount),
             queueFlags(properties.queueFlags),
             _queueOccupancyCount(0) {};
@@ -48,6 +55,37 @@ class QueueFamilyInfo {
 
 class VulkanContext;
 
+class LogicDeviceContext: public raii::VkDevice {
+    public:
+        class Builder {
+            public:
+                PhysicalDeviceContext& _physicalDeviceContext;
+
+                Builder(PhysicalDeviceContext& physical_device_context): _physicalDeviceContext(physical_device_context) {};
+
+                Builder& addQueue(const std::string& identifier, QueueFamilyInfo& queue_family_info, uint32_t count = 1, const float* priority = nullptr);
+                Builder& configFeatures(const VkPhysicalDeviceFeatures* enable_features);
+                Builder& addLayer(const char* layer_name);
+                Builder& addExtension(const char* extension_name);
+
+                LogicDeviceContext build();
+            private:
+                std::vector<std::string> queueIdentifiers;
+                std::vector<VkDeviceQueueCreateInfo> queueCreates;
+                std::vector<const char*> layerNames;
+                std::vector<const char*> extensionNames;
+                const VkPhysicalDeviceFeatures* features{nullptr};
+
+        };
+
+        static Builder builder(PhysicalDeviceContext& physical_device_context);
+    private:
+        std::map<std::string, VkQueue> queueMap;
+
+        LogicDeviceContext() = default;
+        void init(std::map<std::string, VkQueue> queue_map);
+};
+
 class PhysicalDeviceContext: public raii::VkRAIIWrapper<VkPhysicalDevice> {
     public:
         VulkanContext& vulkanContext;
@@ -58,8 +96,8 @@ class PhysicalDeviceContext: public raii::VkRAIIWrapper<VkPhysicalDevice> {
             initQueueFamilies(physical_device);
         }
 
-        std::pair<uint32_t, QueueFamilyInfo> &queryQueueFamily(VkQueueFlags flags, uint32_t requiredQuantity = 0);
-        std::pair<uint32_t, QueueFamilyInfo> &queryPresentQueueFamily(VkSurfaceKHR& surface);
+        QueueFamilyInfo &queryQueueFamily(VkQueueFlags flags, uint32_t requiredQuantity = 0);
+        QueueFamilyInfo &queryPresentQueueFamily(const VkSurfaceKHR& surface);
 
         template<typename Func, typename... Args>
         raii::VkDevice createLogicDevice(Func&& func, Args&&... args) {
@@ -68,14 +106,14 @@ class PhysicalDeviceContext: public raii::VkRAIIWrapper<VkPhysicalDevice> {
             return device;
         }
     private:
-        std::vector<std::pair<uint32_t, QueueFamilyInfo>> queueFamilies;
+        std::vector<QueueFamilyInfo> queueFamilies;
 
         void initQueueFamilies(const VkPhysicalDevice& physical_device);
 };
 
-class VulkanContext: public raii::VkRAIIWrapper<raii::VkInstance>{
+class VulkanContext: public raii::VkInstance{
     public:
-        raii::VkInstance& instance = _value;
+        ::VkInstance& instance = _value;
         std::unique_ptr<PhysicalDeviceContext> physicalDevice{};
 
         VulkanContext();

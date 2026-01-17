@@ -1,11 +1,12 @@
 #include "EvkContext.h"
 
+#include <map>
 #include <ranges>
 #include <GLFW/glfw3.h>
 
 using namespace std;
 
-pair<uint32_t, QueueFamilyInfo> emptyQueueFamilyInfo{0, {0, VK_QUEUE_FLAG_BITS_MAX_ENUM}};
+QueueFamilyInfo emptyQueueFamilyInfo{0, {1, 0, VK_QUEUE_FLAG_BITS_MAX_ENUM}};
 
 VulkanContext::VulkanContext() {
     VkApplicationInfo appInfo{};
@@ -44,29 +45,100 @@ void PhysicalDeviceContext::initQueueFamilies(const VkPhysicalDevice &physical_d
 
     queueFamilies.reserve(count);
     size_t i{};
-    for (QueueFamilyInfo queueFamilyInfo : queueFamilyProps) {
-        queueFamilies.emplace_back(i, queueFamilyInfo);
+    for (auto& queue_family_props : queueFamilyProps) {
+        queueFamilies.emplace_back(i, queue_family_props);
         i++;
     }
 }
 
-std::pair<uint32_t, QueueFamilyInfo> &PhysicalDeviceContext::queryPresentQueueFamily(VkSurfaceKHR &surface) {
+QueueFamilyInfo &PhysicalDeviceContext::queryPresentQueueFamily(const VkSurfaceKHR &surface) {
     VkBool32 isSupport;
     for (auto& queueFamilyInfo : queueFamilies) {
-        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyInfo.first, surface, &isSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyInfo.queueFamilyIndex, surface, &isSupport);
         if (isSupport != VK_FALSE) return queueFamilyInfo;
     }
     return emptyQueueFamilyInfo;
 }
 
-pair<uint32_t, QueueFamilyInfo> &PhysicalDeviceContext::queryQueueFamily(VkQueueFlags flags, uint32_t requiredQuantity) {
+QueueFamilyInfo &PhysicalDeviceContext::queryQueueFamily(const VkQueueFlags flags, const uint32_t requiredQuantity) {
     for (auto& queueFamilyInfo : queueFamilies) {
         bool isSatisfied = true;
-        isSatisfied &= (queueFamilyInfo.second.queueFlags & flags) != 0;
-        isSatisfied &= queueFamilyInfo.second.isAllowOccupation(requiredQuantity);
+        isSatisfied &= (queueFamilyInfo.queueFlags & flags) != 0;
+        isSatisfied &= queueFamilyInfo.isAllowOccupation(requiredQuantity);
         if (isSatisfied) {
             return queueFamilyInfo;
         }
     }
     return emptyQueueFamilyInfo;
+}
+
+LogicDeviceContext::Builder &LogicDeviceContext::Builder::addLayer(const char *layer_name) {
+    if (layer_name == nullptr) {
+        return *this;
+    }
+    layerNames.push_back(layer_name);
+
+    return *this;
+}
+
+LogicDeviceContext::Builder &LogicDeviceContext::Builder::addExtension(const char *extension_name) {
+    if (extension_name == nullptr) {
+        return *this;
+    }
+    extensionNames.push_back(extension_name);
+
+    return *this;
+}
+
+LogicDeviceContext::Builder &LogicDeviceContext::Builder::addQueue(const string& identifier, QueueFamilyInfo &queue_family_info, uint32_t count, const float* priority) {
+    if (count == 0 || priority == nullptr || identifier.empty()) {
+        return *this;
+    }
+    VkDeviceQueueCreateInfo queueInfo{};
+    queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueInfo.queueFamilyIndex = queue_family_info.queueFamilyIndex;
+    queueInfo.queueCount = count;
+    queueInfo.pQueuePriorities = priority;
+    queueCreates.emplace_back(queueInfo);
+    queueIdentifiers.push_back(identifier);
+
+    return *this;
+}
+
+LogicDeviceContext::Builder &LogicDeviceContext::Builder::configFeatures(const VkPhysicalDeviceFeatures *enable_features) {
+    if (enable_features == nullptr) {
+        return *this;
+    }
+    features = enable_features;
+
+    return *this;
+}
+
+LogicDeviceContext LogicDeviceContext::Builder::build() {
+    VkDeviceCreateInfo deviceInfo{};
+    deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceInfo.enabledLayerCount = layerNames.size();
+    deviceInfo.ppEnabledLayerNames = layerNames.data();
+    deviceInfo.enabledExtensionCount = extensionNames.size();
+    deviceInfo.ppEnabledExtensionNames = extensionNames.data();
+    deviceInfo.queueCreateInfoCount = queueCreates.size();
+    deviceInfo.pQueueCreateInfos = queueCreates.data();
+    deviceInfo.pEnabledFeatures = features;
+
+    LogicDeviceContext logicDeviceContext{};
+    VkResult result = vkCreateDevice(_physicalDeviceContext, &deviceInfo, nullptr, &logicDeviceContext);
+    if (result != VK_SUCCESS) {
+        glog.log<DefaultLevel::Error>("逻辑设备创建失败");
+        terminate();
+    }
+
+    return logicDeviceContext;
+}
+
+LogicDeviceContext::Builder LogicDeviceContext::builder(PhysicalDeviceContext &physical_device_context) {
+    return {physical_device_context};
+}
+
+void LogicDeviceContext::init(std::map<std::string, VkQueue> queue_map) {
+    queueMap = std::move(queue_map);
 }

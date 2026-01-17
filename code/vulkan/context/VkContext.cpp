@@ -56,7 +56,7 @@ VkContext::VkContext(GLFWwindow* window): _window(window) {
     }
 
     setupDebugMessenger();
-    createWin32Surface(_instance, _surface, window);
+    createGlfwSurface(_instance, _surface, window);
     pickPhysicalDevice();
     createLogicalDevice();
     createSwapChain();

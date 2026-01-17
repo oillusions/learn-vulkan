@@ -7,6 +7,9 @@
 #include <GLFW/glfw3native.h>
 #endif
 
+#include <EvkContext.h>
+#include <set>
+
 
 inline VkResult createGlfwSurface(const VkInstance& instance, VkSurfaceKHR& surface, GLFWwindow* window) {
     return glfwCreateWindowSurface(instance, window, nullptr, &surface);
@@ -25,13 +28,13 @@ inline VkResult createBasicGraphicsDevice(PhysicalDeviceContext& physicalDeviceC
     VkDeviceCreateInfo deviceInfo{};
     std::vector<VkDeviceQueueCreateInfo> queueInfos;
     auto& graphicsQueueFamily = physicalDeviceContext.queryQueueFamily(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT, 2);
-    if (graphicsQueueFamily.second.queueFlags == VK_QUEUE_FLAG_BITS_MAX_ENUM) return VK_NOT_READY;
+    if (graphicsQueueFamily.queueFlags == VK_QUEUE_FLAG_BITS_MAX_ENUM) return VK_NOT_READY;
     auto& presentQueueFamily = physicalDeviceContext.queryPresentQueueFamily(surface);
-    if (presentQueueFamily.second.queueFlags == VK_QUEUE_FLAG_BITS_MAX_ENUM) return VK_NOT_READY;
+    if (presentQueueFamily.queueFlags == VK_QUEUE_FLAG_BITS_MAX_ENUM) return VK_NOT_READY;
 
-    std::set queueFamilies = {graphicsQueueFamily.first, presentQueueFamily.first};
+    std::set queueFamilies = {graphicsQueueFamily.queueFamilyIndex, presentQueueFamily.queueFamilyIndex};
 
-    graphicsQueueFamily.second.occupies(queueFamilies.size());
+    graphicsQueueFamily.occupies(queueFamilies.size());
 
     float priority = 1.0f;
     for (uint32_t index : queueFamilies) {

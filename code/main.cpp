@@ -18,7 +18,6 @@
 #include <ResourceTypes.hpp>
 #include <EventTypes.hpp>
 #include <EvkContext.h>
-#include <set>
 
 #include "VulkanUtils.hpp"
 
@@ -31,6 +30,8 @@ double lastTime{};
 
 constexpr int width = 800, height = 600;
 string name = "learn";
+
+fs::path iconPath = "./resource/icon.png";
 
 GLFWwindow* window{nullptr};
 void render() {
@@ -53,6 +54,8 @@ int main() {
     globalLogger::_minLevel = DefaultLevel::Debug;
     glog.log(DefaultLevel::Info, "程序已启动");
 
+    auto& icon = arm.load<ImageResource>("icon", iconPath);
+
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -62,6 +65,10 @@ int main() {
         glog.log(DefaultLevel::Error, "窗口创建失败");
         glfwTerminate();
         return -1;
+    }
+
+    if (icon.image.pixels != nullptr) {
+        glfwSetWindowIcon(window, 1, &icon);
     }
 
     glfwSetKeyCallback(window, event::func::key_callback);

@@ -2,6 +2,6 @@
 #include <tuple>
 
 template<typename... Returns>
-std::tuple<Returns...> constexpr returns(Returns&&... returns) noexcept {
+constexpr std::tuple<Returns...> returns(Returns&&... returns) noexcept {
     return {std::forward<Returns>(returns)...};
 }

@@ -8,7 +8,7 @@ namespace raii {
     template<typename CarriedType>
     using VkRAIIWrapper = RAIIWrapper<CarriedType>;
 
-    class VkInstance: public RAIIWrapper<::VkInstance, true> {
+    class VkInstance: public VkRAIIWrapper<::VkInstance> {
     public:
         ~VkInstance() override {
             if (_value == VK_NULL_HANDLE) return;
@@ -55,14 +55,14 @@ namespace raii {
 
     class VkSurfaceKHR: public VkRAIIWrapper<::VkSurfaceKHR> {
     public:
-        VkSurfaceKHR(VkInstance& instance): _instance(instance) {};
+        VkSurfaceKHR(::VkInstance& instance): _instance(instance) {};
         ~VkSurfaceKHR() override {
             if (_value == VK_NULL_HANDLE) return;
             glog.log<DefaultLevel::Debug>("Vulkan Surface已析构");
             vkDestroySurfaceKHR(_instance, _value, nullptr);
         }
     private:
-        VkInstance& _instance;
+        ::VkInstance& _instance;
     };
 
     class VkSwapChainKHR: public  VkRAIIWrapper<::VkSwapchainKHR> {
